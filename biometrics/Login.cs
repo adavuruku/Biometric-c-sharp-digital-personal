@@ -17,6 +17,7 @@ namespace biometrics
     {
         FingerPrint fp = null;
         Fmd firstFinger = null;
+        private const int PROBABILITY_ONE = 0x7fffffff;
         public Login()
         {
             InitializeComponent();
@@ -189,6 +190,7 @@ namespace biometrics
         private void button1_Click(object sender, EventArgs e)
         {
             MySqlConnection con = null;
+            Boolean got = false;
             try
             {
                 String ConString = ConfigurationManager.ConnectionStrings["biometrics.Properties.Settings.testreportConnectionString"].ConnectionString;
@@ -198,31 +200,41 @@ namespace biometrics
                     con.Close();
                 }
                 con.Open();
-
-                String query = "Select * from tblfinger where CustomerFinger = @fingerPrint limit 1";
+                
+                String query = "Select * from tblfinger";
                 MySqlCommand cmd = new MySqlCommand(query, con);
-                cmd.Parameters.AddWithValue("@fingerPrint", Fmd.SerializeXml(firstFinger));
                 cmd.Prepare();
-
                 MySqlDataReader row = cmd.ExecuteReader();
                 if (row.HasRows)
                 {
                     while (row.Read())
                     {
-                        MessageBox.Show("Welcome TO Our Page " + row["user_name"].ToString());
+                        Fmd previousFinger = Fmd.DeserializeXml(row["CustomerFinger"].ToString());
+                        
+                        CompareResult compareResult = Comparison.Compare(firstFinger, 0, previousFinger, 0);
+                        if (compareResult.ResultCode == Constants.ResultCode.DP_SUCCESS)
+                        {
+                            if((compareResult.Score < (PROBABILITY_ONE / 100000))){
+                                MessageBox.Show("Welcome TO Our Page " + row["LedgerId"].ToString());
+                                got = true;
+                                break;
+                            }
+                        }
                     }
-                }else
+                }
+                con.Close();
+
+                if (!got)
                 {
                     lblPlaceFinger.Visible = true;
                     pbFingerprint.Image = null;
                     MessageBox.Show("Invalid Information. Please Retry ");
                     firstFinger = null;
                 }
-                con.Close();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Fail To Create User" + ex.Message);
+                MessageBox.Show("Fail To Create User - " + ex.Message);
                 con.Close();
             }
         }
