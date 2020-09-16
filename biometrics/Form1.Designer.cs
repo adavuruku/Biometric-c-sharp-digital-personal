@@ -149,11 +149,11 @@
         private System.Windows.Forms.TextBox ledgerid;
         internal System.Windows.Forms.Button btnBack;
         internal System.Windows.Forms.Label lblPlaceFinger;
-        internal System.Windows.Forms.PictureBox pbFingerprint;
         private System.Windows.Forms.ComboBox cboReaders;
         private System.Windows.Forms.Label label2;
         internal System.Windows.Forms.Button button1;
         internal System.Windows.Forms.Button login;
+        private System.Windows.Forms.PictureBox pbFingerprint;
     }
 }
 
